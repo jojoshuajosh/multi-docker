@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t joshua/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run joshua/react-test npm test -- --coverage
+
+  after_succes:
+    - docker build -t joshua/multi-client ./client
+    - docker build -t joshua/multi-nginx ./nginx
+    - docker build -t joshua/multi-server ./server
+    - docker build -t joshua/multi-worker ./worker
+    # login to docker cli
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    #take those images and push them to docker hub
+    - docker push joshua/multi-client ./client
+    - docker push joshua/multi-nginx ./nginx
+    - docker push joshua/multi-server ./server
+    - docker push joshua/multi-worker ./worker
